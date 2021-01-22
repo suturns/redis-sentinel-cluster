@@ -1,0 +1,42 @@
+Redis查询命令: 
+	模糊匹配t_tools_wnt_logignore的数量：eval "return #redis.call('keys', 't_tools_wnt_logignore*')" 0
+sentinel命令
+	sentinel masters
+	info
+redis命令：
+	info replication
+	
+谨慎：在测试阶段清除所有测试数据，
+1.在sentinel查找Redis cluster master，
+2.登录master执行：flushAll清除master及所属slave的所有数据
+
+【登录】redis：redis-cli -p 6381 -a 123
+【登录】sentinel：redis-cli -p 26379
+【启动】哨兵：redis-server.exe sentinel26379.conf --sentinel
+【启动】redis：redis-server.exe redis.windows.conf
+
+
+
+
+故障：CLUSTERDOWN Hash slot not served故障解决
+--查看集群槽位问题
+cluster slots
+cluster info
+-- 命令执行槽位恢复   补全槽位问题
+      补全槽位脚本-windows.txt
+
+
+如果单台Redis挂掉，再次加入集群，以slave身份加入集群，操作步骤：
+	1.找任意一台sentinel命令登录
+	2.执行命令【info】 ： master0:name=MyMaster,status=ok,address=127.0.0.1:6381,slaves=3,sentinels=3
+	3.执行【sentinel masters】：
+		1)  1) "name"
+    		2) "MyMaster"
+    		3) "ip"
+    		4) "127.0.0.1"
+    		5) "port"
+    		6) "6381"
+	4.在挂掉那台redis添加配置：
+		cluster-enabled no
+		slaveof 127.0.0.1 6381
+	5.执行启动命令：redis-server.exe redis.windows.conf，启动对应的redis实例
